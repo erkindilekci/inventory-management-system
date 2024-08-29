@@ -1,19 +1,16 @@
 package handlers
 
 import (
-	"encoding/json"
+	"github.com/labstack/echo/v4"
 	"ims-intro/models"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
-func GetProducts(w http.ResponseWriter, r *http.Request) {
+func GetProducts(c echo.Context) error {
 	rows, err := models.DB.Query("SELECT id, name, price, quantity, category FROM products")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer rows.Close()
 
@@ -21,73 +18,59 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p models.Product
 		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity, &p.Category); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 		products = append(products, p)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(products)
+	return c.JSON(http.StatusOK, products)
 }
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
+func CreateProduct(c echo.Context) error {
 	var product models.Product
-	err := json.NewDecoder(r.Body).Decode(&product)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if err := c.Bind(&product); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err = models.DB.QueryRow("INSERT INTO products (name, price, quantity, category) VALUES ($1, $2, $3, $4) RETURNING id",
+	err := models.DB.QueryRow("INSERT INTO products (name, price, quantity, category) VALUES ($1, $2, $3, $4) RETURNING id",
 		product.Name, product.Price, product.Quantity, product.Category).Scan(&product.ID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	return c.JSON(http.StatusCreated, product)
 }
 
-func UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+func UpdateProduct(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	var product models.Product
-	err = json.NewDecoder(r.Body).Decode(&product)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if err := c.Bind(&product); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	_, err = models.DB.Exec("UPDATE products SET name = $1, price = $2, quantity = $3, category = $4 WHERE id = $5",
 		product.Name, product.Price, product.Quantity, product.Category, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+func DeleteProduct(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	_, err = models.DB.Exec("DELETE FROM products WHERE id = $1", id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }

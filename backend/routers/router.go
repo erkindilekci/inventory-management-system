@@ -1,22 +1,25 @@
 package routers
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
 	"ims-intro/handlers"
 	"ims-intro/middleware"
 )
 
-func SetupRouter() *mux.Router {
-	router := mux.NewRouter()
+func SetupRouter() *echo.Echo {
+	e := echo.New()
 
-	router.HandleFunc("/login", handlers.Login).Methods("POST")
-	router.HandleFunc("/signup", handlers.Signup).Methods("POST")
+	e.POST("/login", handlers.Login)
+	e.POST("/signup", handlers.Signup)
 
-	router.HandleFunc("/products", handlers.GetProducts).Methods("GET")
+	e.GET("/products", handlers.GetProducts)
 
-	router.HandleFunc("/products", middleware.AuthAdmin(handlers.CreateProduct)).Methods("POST")
-	router.HandleFunc("/products/{id}", middleware.AuthAdmin(handlers.UpdateProduct)).Methods("PUT")
-	router.HandleFunc("/products/{id}", middleware.AuthAdmin(handlers.DeleteProduct)).Methods("DELETE")
+	productsGroup := e.Group("/products")
+	productsGroup.Use(middleware.AuthAdmin)
 
-	return router
+	productsGroup.POST("", middleware.AuthAdmin(handlers.CreateProduct))
+	productsGroup.PUT("/:id", middleware.AuthAdmin(handlers.UpdateProduct))
+	productsGroup.DELETE("/:id", middleware.AuthAdmin(handlers.DeleteProduct))
+
+	return e
 }

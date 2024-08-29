@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"context"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 	"ims-intro/models"
 	"net/http"
 	"strings"
@@ -10,12 +10,11 @@ import (
 
 var JwtKey = []byte("your_secret_key")
 
-func AuthAdmin(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get("Authorization")
+func AuthAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		tokenStr := c.Request().Header.Get("Authorization")
 		if tokenStr == "" {
-			http.Error(w, "No token provided", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "No token provided")
 		}
 
 		tokenStr = strings.Split(tokenStr, "Bearer ")[1]
@@ -26,11 +25,10 @@ func AuthAdmin(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid || claims.Role != "admin" {
-			http.Error(w, "Not authorized", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "Not authorized")
 		}
 
-		ctx := context.WithValue(r.Context(), "user", claims.Username)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		c.Set("user", claims.Username)
+		return next(c)
 	}
 }

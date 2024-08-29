@@ -4,7 +4,7 @@ WORKDIR /build
 COPY go.* .
 RUN go mod download
 COPY . .
-RUN go build -o ./ims ./cmd/imsapi/main.go
+RUN go build -o ./ims cmd/imsapi/main.go
 
 FROM gcr.io/distroless/base-debian12
 

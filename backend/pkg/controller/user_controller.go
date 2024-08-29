@@ -40,7 +40,7 @@ func (controller *UserController) Login(c echo.Context) error {
 	cookie.Expires = time.Now().Add(24 * time.Hour)
 	c.SetCookie(cookie)
 
-	return c.NoContent(http.StatusCreated)
+	return c.NoContent(http.StatusOK)
 }
 
 func (controller *UserController) SignUp(c echo.Context) error {

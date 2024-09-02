@@ -39,14 +39,14 @@ This project is a web application that leverages a modern tech stack to provide 
 
 2. **Backend Setup:**
    ```sh
-   cd backend
+   cd server
    go mod download
    go build -o ./ims cmd/imsapi/main.go
    ```
 
 3. **Frontend Setup:**
    ```sh
-   cd frontend
+   cd client
    npm install
    npm run dev
    ```
@@ -55,13 +55,13 @@ This project is a web application that leverages a modern tech stack to provide 
 
 1. **Start the Backend:**
    ```sh
-   cd backend
+   cd server
    ./ims
    ```
 
 2. **Start the Frontend:**
    ```sh
-   cd frontend
+   cd client
    npm run dev
    ```
 

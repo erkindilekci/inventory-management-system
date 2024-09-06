@@ -1,7 +1,7 @@
 # Inventory Management App
 
 ## Overview
-This project is a web application that leverages a modern tech stack to provide a robust and scalable solution. The backend is built with Go and Postgres, while the frontend is developed using React and TypeScript.
+This project is a web application designed to optimize the tracking, organization, and control of warehouse products. The backend is built with Go and Postgres, while the frontend is developed using React and TypeScript.
 
 ## Screenshot
 ![imsscreenshot](https://github.com/user-attachments/assets/73eb210e-dbd1-4700-9c68-02b63d0ea3a2)
